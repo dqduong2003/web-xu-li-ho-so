@@ -12,21 +12,10 @@ interface Message {
 
 const quickQuestions = [
   "Dịch vụ này gồm những gì?",
-  "Bao lâu thì có kết quả xét duyệt?",
+  "Mất bao lâu để có kết quả?",
   "Chi phí dịch vụ là bao nhiêu?",
-  "Tôi cần chuẩn bị giấy tờ gì?",
+  "Cần chuẩn bị giấy tờ gì?",
 ];
-
-const cannedAnswers: Record<string, string> = {
-  "Dịch vụ này gồm những gì?":
-    "Bên mình lo phần đối chiếu điểm chuẩn, kiểm tra hồ sơ và tư vấn chọn trường, chia làm 2 gói: Cơ bản và Toàn diện.",
-  "Bao lâu thì có kết quả xét duyệt?":
-    "Nộp đủ giấy tờ là có kết quả đối chiếu điểm chuẩn ngay. Sau đó tư vấn viên sẽ gọi xác nhận lại với bạn trong vòng 24h.",
-  "Chi phí dịch vụ là bao nhiêu?":
-    "Gói Cơ bản 18.000.000₫, gói Toàn diện 45.000.000₫ nhé. Bạn kéo lên phần báo giá phía trên để xem chi tiết quyền lợi từng gói.",
-  "Tôi cần chuẩn bị giấy tờ gì?":
-    "3 thứ thôi: bảng điểm (PDF), ảnh chứng chỉ IELTS, và ảnh CMND/CCCD hoặc hộ chiếu.",
-};
 
 const initialMessages: Message[] = [
   { from: "bot", text: "Chào bạn! Mình là trợ lý ảo của DuHoc24, bạn cần hỗ trợ gì về hồ sơ du học?" },
@@ -36,16 +25,34 @@ export function ChatWidget() {
   const [open, setOpen] = React.useState(false);
   const [messages, setMessages] = React.useState<Message[]>(initialMessages);
   const [input, setInput] = React.useState("");
+  const [isSending, setIsSending] = React.useState(false);
 
-  function sendMessage(text: string) {
-    if (!text.trim()) return;
-    const answer = cannedAnswers[text];
-    setMessages((prev) => [
-      ...prev,
-      { from: "user", text },
-      ...(answer ? [{ from: "bot" as const, text: answer }] : []),
-    ]);
+  async function sendMessage(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || isSending) return;
+
+    const history = messages;
+    setMessages((prev) => [...prev, { from: "user", text: trimmed }]);
     setInput("");
+    setIsSending(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed, history }),
+      });
+      const data = await res.json();
+      const reply = data.reply || "Xin lỗi, mình chưa thể trả lời ngay lúc này, bạn thử lại sau nhé.";
+      setMessages((prev) => [...prev, { from: "bot", text: reply }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { from: "bot", text: "Xin lỗi, mình chưa thể trả lời ngay lúc này, bạn thử lại sau nhé." },
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   }
 
   return (
@@ -84,6 +91,13 @@ export function ChatWidget() {
                 </div>
               </div>
             ))}
+            {isSending && (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-muted px-3.5 py-2 text-sm text-muted-foreground">
+                  Đang trả lời...
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t p-3">
@@ -92,7 +106,8 @@ export function ChatWidget() {
                 <button
                   key={q}
                   onClick={() => sendMessage(q)}
-                  className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground duration-150 hover:border-primary hover:text-primary"
+                  disabled={isSending}
+                  className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground duration-150 hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-50"
                 >
                   {q}
                 </button>
@@ -109,9 +124,10 @@ export function ChatWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Nhập câu hỏi của bạn..."
-                className="h-9 flex-1 rounded-full border border-input bg-transparent px-3.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                disabled={isSending}
+                className="h-9 flex-1 rounded-full border border-input bg-transparent px-3.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
               />
-              <Button type="submit" size="icon" className="shrink-0" aria-label="Gửi">
+              <Button type="submit" size="icon" className="shrink-0" disabled={isSending} aria-label="Gửi">
                 <Send className="size-4" />
               </Button>
             </form>

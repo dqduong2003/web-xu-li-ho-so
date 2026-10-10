@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { Card } from "@/components/ui/card";
 import {
@@ -8,9 +9,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { conversations } from "@/lib/mock-data";
+import { DeleteConversationButton } from "@/components/admin/delete-conversation-button";
+import { StatusBadge } from "@/components/status-badge";
+import { listConversationSummaries } from "@/lib/admin/conversations";
+import { formatDateTime } from "@/lib/utils";
 
-export default function AdminConversationsPage() {
+const leadQualityMeta = {
+  good: { label: "Good", tone: "green" as const },
+  ok: { label: "Ok", tone: "yellow" as const },
+  spam: { label: "Spam", tone: "red" as const },
+};
+
+export default async function AdminConversationsPage() {
+  const conversations = await listConversationSummaries();
+
   return (
     <>
       <AdminPageHeader
@@ -24,15 +36,72 @@ export default function AdminConversationsPage() {
             <TableRow>
               <TableHead>Kênh</TableHead>
               <TableHead>Số tin nhắn</TableHead>
-              <TableHead>Thời gian bắt đầu</TableHead>
+              <TableHead>Tin nhắn gần nhất</TableHead>
+              <TableHead>Bắt đầu lúc</TableHead>
+              <TableHead>Cập nhật lúc</TableHead>
+              <TableHead>Lead</TableHead>
+              <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
+            {conversations.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                  Chưa có cuộc hội thoại nào.
+                </TableCell>
+              </TableRow>
+            )}
             {conversations.map((conv) => (
               <TableRow key={conv.id}>
-                <TableCell className="font-medium">{conv.channel}</TableCell>
-                <TableCell>{conv.messageCount} tin nhắn</TableCell>
-                <TableCell className="text-muted-foreground">{conv.startedAt}</TableCell>
+                <TableCell className="p-0">
+                  <Link href={`/admin/conversations/${conv.id}`} className="block px-4 py-3 font-medium">
+                    Web
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0">
+                  <Link href={`/admin/conversations/${conv.id}`} className="block px-4 py-3">
+                    {conv.messageCount} tin nhắn
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0">
+                  <Link
+                    href={`/admin/conversations/${conv.id}`}
+                    className="block max-w-xs truncate px-4 py-3 text-muted-foreground"
+                  >
+                    {conv.lastMessagePreview ?? "—"}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0">
+                  <Link
+                    href={`/admin/conversations/${conv.id}`}
+                    className="block px-4 py-3 text-muted-foreground"
+                  >
+                    {formatDateTime(conv.createdAt)}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0">
+                  <Link
+                    href={`/admin/conversations/${conv.id}`}
+                    className="block px-4 py-3 text-muted-foreground"
+                  >
+                    {formatDateTime(conv.updatedAt)}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0">
+                  <Link href={`/admin/conversations/${conv.id}`} className="block px-4 py-3">
+                    {conv.leadQuality ? (
+                      <StatusBadge
+                        tone={leadQualityMeta[conv.leadQuality].tone}
+                        label={leadQualityMeta[conv.leadQuality].label}
+                      />
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </Link>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DeleteConversationButton id={conv.id} />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildSystemInstruction, FALLBACK_ANSWER } from "@/lib/qna-data";
+import { buildSystemInstruction, FALLBACK_REPLY } from "@/lib/chatbot-prompt";
+import { getOrCreateConversation, addMessage, type ChatMessageRow } from "@/lib/chat-session";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { callGemini } from "@/lib/gemini";
 
-const MODEL = "gemini-3.1-flash-lite";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+function toWireMessages(rows: ChatMessageRow[]) {
+  return rows.map((r) => ({ from: r.role === "user" ? "user" : "bot", text: r.content }));
+}
 
-interface ChatMessage {
-  from: "bot" | "user";
-  text: string;
+export async function GET() {
+  try {
+    const { messages } = await getOrCreateConversation();
+    return NextResponse.json({ messages: toWireMessages(messages) });
+  } catch (error) {
+    console.error("Failed to load conversation:", error);
+    return NextResponse.json({ error: "Không tải được lịch sử hội thoại." }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -17,42 +26,41 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => null);
   const message = typeof body?.message === "string" ? body.message.trim() : "";
-  const history: ChatMessage[] = Array.isArray(body?.history) ? body.history : [];
-
   if (!message) {
     return NextResponse.json({ error: "Thiếu nội dung câu hỏi." }, { status: 400 });
   }
 
+  const { conversationId, messages: history } = await getOrCreateConversation();
+  await addMessage(conversationId, "user", message);
+
   const contents = [
     ...history.map((m) => ({
-      role: m.from === "user" ? "user" : "model",
-      parts: [{ text: m.text }],
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }],
     })),
     { role: "user", parts: [{ text: message }] },
   ];
 
+  let reply = FALLBACK_REPLY;
   try {
-    const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: buildSystemInstruction() }] },
-        contents,
-      }),
+    const text = await callGemini({
+      systemInstruction: { parts: [{ text: buildSystemInstruction() }] },
+      contents,
     });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("Gemini API error:", res.status, errText);
-      return NextResponse.json({ reply: FALLBACK_ANSWER });
-    }
-
-    const data = await res.json();
-    const reply: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    return NextResponse.json({ reply: reply?.trim() || FALLBACK_ANSWER });
+    if (text) reply = text;
   } catch (error) {
     console.error("Gemini API request failed:", error);
-    return NextResponse.json({ reply: FALLBACK_ANSWER });
   }
+
+  await addMessage(conversationId, "bot", reply);
+
+  const supabase = getSupabaseAdmin();
+  const { data: allMessages } = await supabase
+    .from("chat_messages")
+    .select("role, content, created_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true });
+
+  // The `role` column is constrained to 'user' | 'bot' by a DB check constraint.
+  return NextResponse.json({ messages: toWireMessages((allMessages ?? []) as ChatMessageRow[]) });
 }

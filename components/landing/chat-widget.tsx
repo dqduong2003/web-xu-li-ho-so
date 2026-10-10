@@ -17,21 +17,30 @@ const quickQuestions = [
   "Cần chuẩn bị giấy tờ gì?",
 ];
 
-const initialMessages: Message[] = [
-  { from: "bot", text: "Chào bạn! Mình là trợ lý ảo của DuHoc24, bạn cần hỗ trợ gì về hồ sơ du học?" },
-];
-
 export function ChatWidget() {
   const [open, setOpen] = React.useState(false);
-  const [messages, setMessages] = React.useState<Message[]>(initialMessages);
+  const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
   const [isSending, setIsSending] = React.useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = React.useState(false);
+  const historyLoaded = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!open || historyLoaded.current) return;
+    historyLoaded.current = true;
+    setIsLoadingHistory(true);
+
+    fetch("/api/chat")
+      .then((res) => res.json())
+      .then((data) => setMessages(data.messages ?? []))
+      .catch(() => setMessages([]))
+      .finally(() => setIsLoadingHistory(false));
+  }, [open]);
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
     if (!trimmed || isSending) return;
 
-    const history = messages;
     setMessages((prev) => [...prev, { from: "user", text: trimmed }]);
     setInput("");
     setIsSending(true);
@@ -40,11 +49,17 @@ export function ChatWidget() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, history }),
+        body: JSON.stringify({ message: trimmed }),
       });
       const data = await res.json();
-      const reply = data.reply || "Xin lỗi, mình chưa thể trả lời ngay lúc này, bạn thử lại sau nhé.";
-      setMessages((prev) => [...prev, { from: "bot", text: reply }]);
+      if (Array.isArray(data.messages)) {
+        setMessages(data.messages);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { from: "bot", text: "Xin lỗi, mình chưa thể trả lời ngay lúc này, bạn thử lại sau nhé." },
+        ]);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -74,6 +89,9 @@ export function ChatWidget() {
           </div>
 
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
+            {isLoadingHistory && (
+              <p className="text-center text-xs text-muted-foreground">Đang tải lịch sử hội thoại...</p>
+            )}
             {messages.map((m, i) => (
               <div
                 key={i}

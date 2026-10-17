@@ -10,9 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { schools } from "@/lib/mock-data";
+import { listReferenceSchools } from "@/lib/schools";
 
-export default function AdminSchoolsPage() {
+export default async function AdminSchoolsPage() {
+  const schools = await listReferenceSchools();
+
   return (
     <>
       <AdminPageHeader

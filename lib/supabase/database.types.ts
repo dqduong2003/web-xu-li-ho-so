@@ -126,6 +126,167 @@ export type Database = {
           },
         ]
       }
+      scholarships: {
+        Row: {
+          created_at: string
+          id: string
+          min_gpa: number | null
+          min_ielts: number | null
+          name: string
+          school_id: string
+          support_description: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          min_gpa?: number | null
+          min_ielts?: number | null
+          name: string
+          school_id: string
+          support_description: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          min_gpa?: number | null
+          min_ielts?: number | null
+          name?: string
+          school_id?: string
+          support_description?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scholarships_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schools: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          min_gpa: number
+          min_ielts: number
+          name: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          min_gpa: number
+          min_ielts: number
+          name: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          min_gpa?: number
+          min_ielts?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      student_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          identity_date_of_birth: string | null
+          identity_document_number: string | null
+          identity_file_name: string | null
+          identity_full_name: string | null
+          identity_reject_reason: string | null
+          identity_status: string
+          identity_storage_path: string | null
+          ielts_file_name: string | null
+          ielts_full_name: string | null
+          ielts_listening: number | null
+          ielts_overall: number | null
+          ielts_reading: number | null
+          ielts_reject_reason: string | null
+          ielts_speaking: number | null
+          ielts_status: string
+          ielts_storage_path: string | null
+          ielts_test_date: string | null
+          ielts_writing: number | null
+          session_token: string
+          transcript_date_of_birth: string | null
+          transcript_file_name: string | null
+          transcript_full_name: string | null
+          transcript_gpa: number | null
+          transcript_reject_reason: string | null
+          transcript_status: string
+          transcript_storage_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          identity_date_of_birth?: string | null
+          identity_document_number?: string | null
+          identity_file_name?: string | null
+          identity_full_name?: string | null
+          identity_reject_reason?: string | null
+          identity_status?: string
+          identity_storage_path?: string | null
+          ielts_file_name?: string | null
+          ielts_full_name?: string | null
+          ielts_listening?: number | null
+          ielts_overall?: number | null
+          ielts_reading?: number | null
+          ielts_reject_reason?: string | null
+          ielts_speaking?: number | null
+          ielts_status?: string
+          ielts_storage_path?: string | null
+          ielts_test_date?: string | null
+          ielts_writing?: number | null
+          session_token: string
+          transcript_date_of_birth?: string | null
+          transcript_file_name?: string | null
+          transcript_full_name?: string | null
+          transcript_gpa?: number | null
+          transcript_reject_reason?: string | null
+          transcript_status?: string
+          transcript_storage_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          identity_date_of_birth?: string | null
+          identity_document_number?: string | null
+          identity_file_name?: string | null
+          identity_full_name?: string | null
+          identity_reject_reason?: string | null
+          identity_status?: string
+          identity_storage_path?: string | null
+          ielts_file_name?: string | null
+          ielts_full_name?: string | null
+          ielts_listening?: number | null
+          ielts_overall?: number | null
+          ielts_reading?: number | null
+          ielts_reject_reason?: string | null
+          ielts_speaking?: number | null
+          ielts_status?: string
+          ielts_storage_path?: string | null
+          ielts_test_date?: string | null
+          ielts_writing?: number | null
+          session_token?: string
+          transcript_date_of_birth?: string | null
+          transcript_file_name?: string | null
+          transcript_full_name?: string | null
+          transcript_gpa?: number | null
+          transcript_reject_reason?: string | null
+          transcript_status?: string
+          transcript_storage_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

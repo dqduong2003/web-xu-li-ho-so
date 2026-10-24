@@ -126,6 +126,45 @@ export type Database = {
           },
         ]
       }
+      quote_requests: {
+        Row: {
+          country: string
+          created_at: string
+          customer_name: string
+          degree_level: string
+          email: string
+          id: string
+          phone: string | null
+          quote_price: number
+          service_package: string
+          status: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          customer_name: string
+          degree_level: string
+          email: string
+          id?: string
+          phone?: string | null
+          quote_price: number
+          service_package: string
+          status?: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          customer_name?: string
+          degree_level?: string
+          email?: string
+          id?: string
+          phone?: string | null
+          quote_price?: number
+          service_package?: string
+          status?: string
+        }
+        Relationships: []
+      }
       scholarships: {
         Row: {
           created_at: string

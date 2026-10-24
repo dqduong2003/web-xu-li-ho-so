@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const COOKIE_NAME = "student_session";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (request.cookies.has(COOKIE_NAME)) {
     return NextResponse.next();
   }

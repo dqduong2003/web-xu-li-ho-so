@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { countries, servicePackages, type ServicePackage } from "@/lib/mock-data";
+import { isValidEmail } from "@/lib/validation";
 
 const degreeLevels = [
   { value: "thpt", label: "THPT" },
@@ -40,18 +41,57 @@ function formatVnd(value: number) {
 }
 
 export function QuoteForm() {
+  const [customerName, setCustomerName] = React.useState("");
   const [country, setCountry] = React.useState<string>("");
   const [degreeLevel, setDegreeLevel] = React.useState<string>("dai_hoc");
   const [selectedPackage, setSelectedPackage] = React.useState<ServicePackage>("co_ban");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [submitted, setSubmitted] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [emailError, setEmailError] = React.useState<string | null>(null);
 
   const chosenPackage = servicePackages.find((p) => p.id === selectedPackage)!;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+
+    if (!isValidEmail(email)) {
+      setEmailError("Email không đúng định dạng, vui lòng nhập lại.");
+      return;
+    }
+    setEmailError(null);
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/quote-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName,
+          email,
+          phone,
+          country,
+          degreeLevel,
+          servicePackage: selectedPackage,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Có lỗi xảy ra, vui lòng thử lại.");
+        return;
+      }
+
+      setSubmitted(true);
+    } catch {
+      setError("Không gửi được yêu cầu, vui lòng kiểm tra kết nối và thử lại.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -152,16 +192,33 @@ export function QuoteForm() {
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="customerName">Họ tên</Label>
+                <Input
+                  id="customerName"
+                  type="text"
+                  required
+                  placeholder="Nguyễn Văn A"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email liên hệ</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
+                  inputMode="email"
                   required
                   placeholder="ban@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  aria-invalid={!!emailError}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailError(null);
+                  }}
                 />
+                {emailError && <p className="text-sm text-red-600">{emailError}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Số điện thoại</Label>
@@ -176,9 +233,11 @@ export function QuoteForm() {
               </div>
             </div>
 
-            <Button type="submit" size="lg" className="w-full sm:w-auto">
-              Nhận báo giá
+            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={isSubmitting}>
+              {isSubmitting ? "Đang gửi..." : "Nhận báo giá"}
             </Button>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
 
             {submitted && (
               <div className="space-y-3 rounded-xl border border-primary/20 bg-accent p-5">

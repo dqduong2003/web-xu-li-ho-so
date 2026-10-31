@@ -42,13 +42,18 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-muted-foreground duration-150 hover:text-primary">
+                <Link href="/schools" className="text-muted-foreground duration-150 hover:text-primary">
                   Điểm chuẩn các trường
                 </Link>
               </li>
               <li>
                 <Link href="/portal" className="text-muted-foreground duration-150 hover:text-primary">
                   Cổng hồ sơ
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="text-muted-foreground duration-150 hover:text-primary">
+                  Chính sách quyền riêng tư
                 </Link>
               </li>
             </ul>

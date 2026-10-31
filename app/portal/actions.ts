@@ -1,8 +1,16 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { getOrCreateStudentProfile } from "@/lib/student-session";
 import { listReferenceSchools } from "@/lib/schools";
 import { suggestScholarships } from "@/lib/scholarship-advisor";
+import { createSupabaseServerClient } from "@/lib/supabase/server-client";
+
+export async function signOutAction() {
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}
 
 export async function suggestScholarshipsAction(): Promise<
   { ok: true; text: string } | { ok: false; error: string }

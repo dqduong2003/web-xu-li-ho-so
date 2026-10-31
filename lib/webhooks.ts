@@ -35,8 +35,8 @@ export async function notifyQuoteRequestApproved(request: QuoteRequest): Promise
   const webhookUrl = process.env.MAKE_APPROVAL_WEBHOOK_URL;
   if (!webhookUrl) return;
 
-  // Placeholder for now — swap this env var to the real /login (magic link)
-  // URL once it exists (Tuần 6). Nothing else needs to change.
+  // /login now exists for real (Google sign-in). When deploying to a real
+  // domain, just update this env var — nothing else needs to change.
   const loginLink = process.env.QUOTE_APPROVAL_LOGIN_LINK || "http://localhost:3000/login";
 
   await postWebhook("Quote approval", webhookUrl, {

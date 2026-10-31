@@ -19,7 +19,15 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-export function LeadCard({ conversationId, lead }: { conversationId: string; lead: Lead | null }) {
+export function LeadCard({
+  conversationId,
+  lead,
+  canManage,
+}: {
+  conversationId: string;
+  lead: Lead | null;
+  canManage: boolean;
+}) {
   return (
     <Card className="space-y-4 p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -33,7 +41,7 @@ export function LeadCard({ conversationId, lead }: { conversationId: string; lea
         </div>
         <div className="flex items-center gap-3">
           {lead && <StatusBadge tone={qualityMeta[lead.quality].tone} label={qualityMeta[lead.quality].label} />}
-          <ExtractLeadButton conversationId={conversationId} hasLead={!!lead} />
+          {canManage && <ExtractLeadButton conversationId={conversationId} hasLead={!!lead} />}
         </div>
       </div>
 

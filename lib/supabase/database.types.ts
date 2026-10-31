@@ -252,7 +252,7 @@ export type Database = {
           ielts_storage_path: string | null
           ielts_test_date: string | null
           ielts_writing: number | null
-          session_token: string
+          session_token: string | null
           transcript_date_of_birth: string | null
           transcript_file_name: string | null
           transcript_full_name: string | null
@@ -261,6 +261,7 @@ export type Database = {
           transcript_status: string
           transcript_storage_path: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -283,7 +284,7 @@ export type Database = {
           ielts_storage_path?: string | null
           ielts_test_date?: string | null
           ielts_writing?: number | null
-          session_token: string
+          session_token?: string | null
           transcript_date_of_birth?: string | null
           transcript_file_name?: string | null
           transcript_full_name?: string | null
@@ -292,6 +293,7 @@ export type Database = {
           transcript_status?: string
           transcript_storage_path?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -314,7 +316,7 @@ export type Database = {
           ielts_storage_path?: string | null
           ielts_test_date?: string | null
           ielts_writing?: number | null
-          session_token?: string
+          session_token?: string | null
           transcript_date_of_birth?: string | null
           transcript_file_name?: string | null
           transcript_full_name?: string | null
@@ -323,6 +325,7 @@ export type Database = {
           transcript_status?: string
           transcript_storage_path?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -331,7 +334,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      auth_role: {
+        Args: never
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

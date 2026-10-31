@@ -119,3 +119,16 @@ export async function listQuoteRequests(): Promise<QuoteRequest[]> {
 
   return (data ?? []).map(mapRow);
 }
+
+export async function isEmailApproved(email: string): Promise<boolean> {
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase
+    .from("quote_requests")
+    .select("id")
+    .ilike("email", email)
+    .eq("status", "da_duyet")
+    .limit(1)
+    .maybeSingle();
+
+  return data !== null;
+}

@@ -8,6 +8,7 @@ import { DeleteConversationButton } from "@/components/admin/delete-conversation
 import { LeadCard } from "@/components/admin/lead-card";
 import { getConversationDetail } from "@/lib/admin/conversations";
 import { getLeadForConversation } from "@/lib/admin/leads";
+import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { cn, formatDateTime } from "@/lib/utils";
 
 export default async function AdminConversationDetailPage({
@@ -22,7 +23,8 @@ export default async function AdminConversationDetailPage({
     notFound();
   }
 
-  const lead = await getLeadForConversation(id);
+  const [lead, admin] = await Promise.all([getLeadForConversation(id), getAuthenticatedAdmin()]);
+  const canManage = admin?.role === "admin";
 
   return (
     <>
@@ -42,13 +44,13 @@ export default async function AdminConversationDetailPage({
                 </Link>
               }
             />
-            <DeleteConversationButton id={conversation.id} label="Xóa hội thoại" />
+            {canManage && <DeleteConversationButton id={conversation.id} label="Xóa hội thoại" />}
           </div>
         }
       />
 
       <div className="mb-6">
-        <LeadCard conversationId={conversation.id} lead={lead} />
+        <LeadCard conversationId={conversation.id} lead={lead} canManage={canManage} />
       </div>
 
       <Card className="space-y-4 p-6">

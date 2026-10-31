@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOrCreateStudentProfile } from "@/lib/student-session";
+import { getOrCreateStudentProfile, PortalAccessDeniedError } from "@/lib/student-session";
 import { processDocumentUpload, DocumentUploadError, type DocType } from "@/lib/portal-documents";
 
 const VALID_TYPES: DocType[] = ["transcript", "ielts", "identity"];
@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
     const updated = await processDocumentUpload(profile.id, type as DocType, file);
     return NextResponse.json({ profile: updated });
   } catch (error) {
+    if (error instanceof PortalAccessDeniedError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     if (error instanceof DocumentUploadError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

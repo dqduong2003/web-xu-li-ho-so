@@ -12,6 +12,7 @@ import {
 import { DeleteConversationButton } from "@/components/admin/delete-conversation-button";
 import { StatusBadge } from "@/components/status-badge";
 import { listConversationSummaries } from "@/lib/admin/conversations";
+import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { formatDateTime } from "@/lib/utils";
 
 const leadQualityMeta = {
@@ -21,7 +22,8 @@ const leadQualityMeta = {
 };
 
 export default async function AdminConversationsPage() {
-  const conversations = await listConversationSummaries();
+  const [conversations, admin] = await Promise.all([listConversationSummaries(), getAuthenticatedAdmin()]);
+  const canManage = admin?.role === "admin";
 
   return (
     <>
@@ -40,13 +42,13 @@ export default async function AdminConversationsPage() {
               <TableHead>Bắt đầu lúc</TableHead>
               <TableHead>Cập nhật lúc</TableHead>
               <TableHead>Lead</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
+              {canManage && <TableHead className="text-right">Hành động</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {conversations.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={canManage ? 7 : 6} className="text-center text-muted-foreground">
                   Chưa có cuộc hội thoại nào.
                 </TableCell>
               </TableRow>
@@ -99,9 +101,11 @@ export default async function AdminConversationsPage() {
                     )}
                   </Link>
                 </TableCell>
-                <TableCell className="text-right">
-                  <DeleteConversationButton id={conv.id} />
-                </TableCell>
+                {canManage && (
+                  <TableCell className="text-right">
+                    <DeleteConversationButton id={conv.id} />
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

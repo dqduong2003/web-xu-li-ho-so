@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { deleteConversationAction } from "@/app/admin/conversations/actions";
+import { deleteConversationAction } from "@/app/admin/(dashboard)/conversations/actions";
 import { cn } from "@/lib/utils";
 
 export function DeleteConversationButton({

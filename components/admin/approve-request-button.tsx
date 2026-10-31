@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { approveQuoteRequestAction } from "@/app/admin/requests/actions";
+import { approveQuoteRequestAction } from "@/app/admin/(dashboard)/requests/actions";
 
 export function ApproveRequestButton({ id, disabled }: { id: string; disabled?: boolean }) {
   const [isPending, startTransition] = useTransition();
